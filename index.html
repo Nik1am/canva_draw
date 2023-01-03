@@ -1,0 +1,113 @@
+<head>
+    <style>
+        #canvas {
+            border: 2px solid;
+        }
+        * {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<input type="number" id="width"> width
+<input type="color" id="color"> color
+<input type="button" value="Reset" id="reset">
+<input type="button" value="Undo" id="undo">
+
+<p><canvas id="canvas" width="640" height="480"></canvas></p>
+<script>
+points = [[],[]]
+states = []
+extra_undo = true
+window.onload = () => {
+    canvas = document.getElementById("canvas")
+    width = document.getElementById("width")
+    color = document.getElementById("color")
+    reset = document.getElementById("reset")
+    undo = document.getElementById("undo")
+
+    ctx = canvas.getContext("2d")
+    canvas_bbox = canvas.getBoundingClientRect()
+    ctx.lineCap = 'round';
+    isdown = false
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    states.push(ctx.getImageData(0, 0, canvas.width, canvas.height))
+
+    width.oninput = () => {
+        ctx.lineWidth = width.value
+    }
+
+    color.oninput = () => {
+        ctx.strokeStyle = color.value;
+    }
+
+    reset.onclick = () => {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    undo.onclick = () => {
+        undo_func()
+    }
+
+    document.onkeydown = (e) => {
+        if(e.keyCode == 90 && e.ctrlKey){
+            undo_func()
+        }
+    }
+
+    document.onmousedown = (e) => {
+        mouse_pos_x = e.x - canvas_bbox.x + window.scrollX
+        mouse_pos_y = e.y - canvas_bbox.y + window.scrollY
+        points[1] = [e.x, e.y]
+        if((e.target == canvas) && (e.buttons == 1)){
+            isdown = true
+            ctx.beginPath();
+            ctx.moveTo(mouse_pos_x, mouse_pos_y);
+        }
+    }
+
+    document.onmousemove = (e) => {
+        mouse_pos_x = e.x - canvas_bbox.x + window.scrollX
+        mouse_pos_y = e.y - canvas_bbox.y + window.scrollY
+        if(isdown){
+            points[1] = [mouse_pos_x, mouse_pos_y]
+            //pp = prev point 
+            pp = {
+                x: points[0][0],
+                y: points[0][1]
+            }
+            //cp = control point 
+            cp = {
+                x: (mouse_pos_x + pp.x) /2,
+                y: (mouse_pos_y + pp.y) /2
+            }
+            ctx.quadraticCurveTo(pp.x, pp.y, cp.x, cp.y)
+            ctx.stroke();
+            points[0] = [mouse_pos_x, mouse_pos_y]
+        }
+    }
+
+    document.onmouseup = () => {
+        points = [[],[]]
+        if(isdown){
+            states.push(ctx.getImageData(0, 0, canvas.width, canvas.height))
+            extra_undo = true
+        }
+        isdown = false
+    }
+
+    function undo_func() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        data = states.pop()
+        if(extra_undo){
+            data = states.pop()
+        }
+        ctx.putImageData(data,0,0)
+        extra_undo = false
+    }
+}
+</script>
