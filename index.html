@@ -47,6 +47,7 @@ window.onload = () => {
     reset.onclick = () => {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        states.push(ctx.getImageData(0, 0, canvas.width, canvas.height))
     }
 
     undo.onclick = () => {
