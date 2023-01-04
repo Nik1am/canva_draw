@@ -61,6 +61,7 @@ window.onload = () => {
     }
 
     document.onmousedown = (e) => {
+        canvas_bbox = canvas.getBoundingClientRect()
         mouse_pos_x = e.x - canvas_bbox.x + window.scrollX
         mouse_pos_y = e.y - canvas_bbox.y + window.scrollY
         points[1] = [e.x, e.y]
